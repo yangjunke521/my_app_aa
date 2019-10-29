@@ -1,0 +1,16 @@
+/* 表单验证样式 */
+.form-group-error {
+  input, textarea, .ivu-select-selection {
+    border-color: #f79483;
+    &:hover, &:focus {
+      border-color: #f79483;
+      box-shadow: 0 0 0 2px rgba(247, 148, 131,.2);
+    }
+  }
+}
+.form-group-message {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #f79483;
+}

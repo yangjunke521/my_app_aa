@@ -1,0 +1,21 @@
+/* 表单验证样式 */
+.form-group-error input,
+.form-group-error textarea,
+.form-group-error .ivu-select-selection {
+  border-color: #f79483;
+}
+.form-group-error input:hover,
+.form-group-error textarea:hover,
+.form-group-error .ivu-select-selection:hover,
+.form-group-error input:focus,
+.form-group-error textarea:focus,
+.form-group-error .ivu-select-selection:focus {
+  border-color: #f79483;
+  box-shadow: 0 0 0 2px rgba(247, 148, 131, 0.2);
+}
+.form-group-message {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #f79483;
+}

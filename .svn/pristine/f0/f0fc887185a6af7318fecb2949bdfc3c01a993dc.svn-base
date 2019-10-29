@@ -1,0 +1,20 @@
+.el-tooltip__popper {
+  background: #008cca !important;
+  font-size: 15px !important;
+  max-width: 400px;
+}
+.el-tooltip__popper .popper__arrow {
+  border-top-color: #008cca !important;
+}
+.el-tooltip__popper .popper__arrow::after {
+  border-top-color: #008cca !important;
+}
+.infinite-list-wrapper {
+  overflow: auto;
+  height: 100%;
+}
+.infinite-list-wrapper .infinite-list-footer {
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 0.7rem 0;
+}

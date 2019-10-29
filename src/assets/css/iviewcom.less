@@ -1,0 +1,178 @@
+
+/**
+*   common样式
+**/
+.ivu-input{
+    height: 2.8vh !important;
+}
+.ivu-input-suffix i {
+    line-height: 2.8vh!important;
+}
+// h5,div,p,ul,ol{
+//   margin-bottom: 0!important;
+// }
+
+/**
+* iviw的公共样式
+**/
+.layout-main{
+    top:50px!important;
+}
+.ivu-menu{
+    width:100%!important;
+}
+.layout-main .content {
+    width: calc(100vw - 300px)!important;
+    height: 100%!important;
+}
+.ivu-layout-sider-children .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item-active,.ivu-layout-sider-children .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item-active:hover,.ivu-menu-dark.ivu-menu-vertical .ivu-menu-item-active:not(.ivu-menu-submenu){
+    border-left: 5px solid #ffa800!important;
+    color: #fff!important;
+    background: #00c1e0!important;
+    &::before {
+        width: 0;
+        height: 0;
+        content: "";
+        position: absolute;
+        right: 0;
+        top:17px;
+        border-top: solid 7px transparent;
+        border-right: solid 7px #fff;
+        border-bottom: solid 7px transparent;
+    }
+}
+.ivu-menu-vertical .ivu-menu-item{
+    border-left: 5px solid rgba(0,0,0,0)!important;
+}
+.ivu-layout{
+    background:#fff!important;
+}
+.ivu-breadcrumb>span:last-child{
+    font-weight: 500!important;
+}
+.cultureDiv{
+  padding: 0 20px 20px;
+  max-width: calc(100vw - 300px);
+  min-height: calc(100vh - 57px);
+}
+/**
+* 首页-单位表具管理
+**/
+.moreCheck{
+    .ivu-input{
+        height:2.8vh !important;
+    }
+}
+/**
+* input框-基础数据-单位管理
+**/
+.souso{
+    .ivu-input-wrapper{
+        width:70% !important;
+        margin-right: 3%;
+    }
+    .ivu-btn-small,.ivu-btn:hover{
+        font-size: 14px;
+        border-radius: 3px;
+        background: #00c1e0;
+        color: #fff;
+    }
+    .dateDiv{
+        width:27%!important;
+        display: inline-block;
+        .ivu-input-wrapper{
+            width:100% !important;
+        }
+    }
+    .ivu-select{
+        width:4vw;
+        margin-right: 10px;
+    }
+    .ivu-select-single .ivu-select-selection{
+        height: 2.8vh!important;
+        .ivu-select-placeholder{
+            height: 2.8vh!important;
+            line-height: 2.8vh!important;
+        }
+    }
+}
+.sousoT{
+    .ivu-input-wrapper{
+        width:100% !important;
+    }
+    .dateDiv{
+        width: 5.21vw!important;
+    }
+}
+/**
+* 能源缴费-电表1用量统计图
+**/
+.bjxxDiv{//表具信息
+    .numDiv{
+        .ivu-input-wrapper{
+            width: 4.43vw!important;
+            border: 0!important;
+            border-radius: 0!important;
+            border-bottom: 1px solid #ccc!important;
+            margin-right: 2.4vw;
+            .ivu-input{
+                border: 0!important;
+                height: 20px;
+                line-height: 20px;
+            }
+            .ivu-input:focus {
+                box-shadow: none;
+            }
+        }
+        .ivu-btn-small{
+            background:#ffa800!important;
+            border-color:#ffa800!important;
+            color:#fff!important;
+        }
+    }
+}
+.jfjlDiv{//缴费记录
+    h5{
+        margin-top:0!important;
+    }
+    .ivu-table th{
+        background: #fff!important;
+    }
+    .ivu-checkbox .ivu-checkbox-inner{
+        border: 1px solid #4de3bc!important;
+    }
+    .ivu-checkbox-checked .ivu-checkbox-inner {
+        border-color: #4de3bc!important;
+        background-color: #4de3bc!important;
+    }
+}
+/**
+*   common样式
+**/
+.ivu-menu-dark.ivu-menu-vertical .ivu-menu-opened .ivu-menu-submenu-title,.ivu-menu-submenu-title,.ivu-menu-vertical .ivu-menu-item {
+    padding-left: 60px!important;
+}
+.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item{
+    padding-left:90px!important;
+}
+.ivu-layout-sider {
+    background: #333743!important;
+}
+.ivu-menu-dark ,.ivu-menu{
+    background: #42475b!important;
+}
+/**
+*   login登录样式
+**/
+.formInline {
+    .ivu-input{
+        width:400px!important;
+        height:46px!important;
+        padding-left:20px;
+        font-size: 18px;
+    }
+    .ivu-checkbox-inner{
+        background:rgba(0,0,0,0);
+        margin-left:15px;
+    }
+}

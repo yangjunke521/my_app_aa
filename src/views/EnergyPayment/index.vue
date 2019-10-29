@@ -1,0 +1,541 @@
+<template>
+  <div class="cultureDiv">
+    <Breadcrumb style="border-bottom:1px solid #ccc;font-size:18px;font-weight:100;padding:8px 0;">
+      <BreadcrumbItem>能源缴费</BreadcrumbItem>
+    </Breadcrumb>
+    <Content>
+      <section>
+        <div class="sec_div">
+           <div class="template_div">
+             <h4>
+               <span>单位表具管理</span>
+               <div class="moreCheck souso">
+                 <Input v-model="dwmcVal" placeholder="请输入"/>
+                 <Button size="small" @click="search"><Icon type="ios-search" /></Button>
+                </div>
+             </h4>
+             <div class="temp_con">
+               <ul class='nav_con' v-if="ylphbData.length>0">
+                 <li :class="{'navLiActive':index == nav_conIndex}" v-for="(item,index) in ylphbData"
+                     @click="navLiChange(index)">
+                   <p v-if="index != nav_conIndex">{{item.companyName}}
+                       <span><img src="@/assets/image/nav_li.jpg"/></span></p>
+                   <div class="navDiv" v-else-if="index == nav_conIndex">
+                     <div class="navDivL">
+                       <div class="img"><img width="80vh" height="80vh" :src="item.src"/></div>
+                       <h2>{{item.companyName}}</h2>
+                     </div>
+                     <div class="navDivR">
+                         <p v-for="(meterItem, meterIndex) in item.con" @click="meterChange(meterIndex)">
+                             {{meterItem.meterName}}
+                         </p>
+
+                     </div>
+                     <span class="navDivImg"><img src="@/assets/image/nav_li_active.jpg"/></span>
+                   </div>
+                 </li>
+               </ul>
+             </div>
+           </div>
+        </div>
+        <div class="sec_div">
+            <div class="template_div">
+              <h4>
+                <span>用量统计图</span>
+              </h4>
+               <div class="temp_con">
+                 <div class="bjxxDiv">
+                   <h5>表具信息</h5>
+                    <ul>
+                      <li>
+                        <p class="name">商户名称</p>
+                        <p class="value">{{basicInfo2.cName}}</p>
+                      </li>
+                       <li>
+                        <p class="name">表具名称</p>
+                        <p class="value">{{basicInfo2.mName}}</p>
+                      </li>
+                       <li>
+                        <p class="name">账户余额</p>
+                        <p class="value">{{basicInfo.mBalance}}</p>
+                      </li>
+                    </ul>
+                    <div class="numDiv">
+                      <span>请输入金额：</span>
+                      <Input v-model="dbNum" placeholder="请输入金额" />
+                      <Button size='small' @click="ljjfClickFun(meterIndex)">立即缴费</Button>
+                    </div>
+                 </div>
+                   <div class="jfj  lDiv">
+                       <h5>缴费记录</h5>
+                       <CTable :columns='this.jfjlCol' :list='this.jfjlList' :border='true'>
+
+                       </CTable>
+                   </div>
+               </div>
+           </div>
+        </div>
+      </section>
+    </Content>
+  </div>
+</template>
+
+
+<script>
+
+import CTable from '@/components/comIview/ctable'
+
+export default {
+  name: 'EnergyPayment',//能源缴费
+  props: [''],
+  data () {
+    return {
+        /**
+         * 用量排行榜
+         */
+        ylphTitList: ['单位', '表具'],//用量排行榜
+        ylphTit: 0,//用量排行榜
+        ylphbList: ['电表', '水表', '燃气表'],//用量排行榜
+        ylphb_act: 0,//用量排行榜
+        ylphbData: [],//单位表具管理列表
+
+
+        /**
+         * 单位表具管理
+         */
+        dwmcVal: '',//单位表具管理-输入框
+        nav_conIndex: 0,//默认选中的值
+        meterIndex: 0, // 表具的下标， 用于获取表具ID
+        img:'',//图片
+        basicInfo2:{
+            cName: '',//商家名字
+            mName: '',//表具名字
+            cId:'',
+            mNo:'',
+            cContact:'',
+        },
+        basicInfo: { //基础信息
+            mBalance:'',//缴费信息
+        },
+      /**
+       * 缴费记录
+       */
+      jfjlCol:[
+          {//是否显示复选框
+              type: 'selection',
+              width: 60,
+              align: 'center'
+          },
+          {
+              title: '缴费日期',
+              key: 'jfsj',
+              align: 'center',
+              width: 'auto',
+          },
+          {
+              title: '缴费人',
+              key: 'jfr',
+              align: 'center',
+              width: 'auto',
+          },
+          {
+              title: '金额',
+              key: 'jfjr',
+              align: 'center',
+              width: 'auto',
+          },
+          {
+              title: '缴费方式',
+              key: 'jflx',
+              align: 'center',
+              width: 'auto',
+          },
+      ],
+          jfjlList:[],
+          dbNum:'',//缴费金额
+  }
+  },
+
+  components: {
+    CTable
+  },
+
+  computed: {},
+
+
+  beforeMount () { },
+
+  mounted () {
+    this.navLiChange(this.ylphb_act,this.ylphbData[0]);
+    this.selectCompany(null);
+  },
+
+
+
+    /*
+    // 获取商家列表
+// 参数：商家名称
+getCompanyList(comName) {
+    const that = this;
+    $.ajax('/api/business/company_list', {
+        dataType: 'json',
+        data: {
+            comName: comName
+        },
+        success: function (res) {
+            if (res.success) {
+                that.ylphbData = res.data;
+                const meterId = that.ylphbData[that.nav_conIndex].con[that.meterIndex].meterId;
+                that.getMeterBasicInfo(meterId);
+                that.getCurrentData(meterId);
+            }
+        }
+    });
+},
+    */
+
+
+  methods: {
+      search(){//单位表具管理-搜索确定
+          this.selectCompany(this.dwmcVal);
+      },
+    selectCompany(comName){
+        const that=this;
+        $.ajax(
+            {
+                url: '/api/RechagerController/selectBjjf',     // 请求地址, 就是你的控制器, 如 test.com/home/index/index
+                data: {
+                    comName:comName
+                },   // 需要传送的参数
+                type: 'POST',   // 请求方式
+                dataType: 'json', // 返回数据的格式, 通常为JSON
+                success: function (result) {
+                    if(result.success){
+                        that.ylphbData = result.data;
+                        const suoyin2=that.ylphbData[that.nav_conIndex].con[that.meterIndex].meterId;
+                        that.selectsjxx(suoyin2);
+                        that.selectmBalance(suoyin2);
+                        that.selectczxx(suoyin2);
+                    }
+                },
+            });
+
+    },
+      selectmBalance(mId){
+        const that=this;
+          $.ajax({
+                  url: '/api/RechagerController/selectyue',     // 请求地址, 就是你的控制器, 如 test.com/home/index/index
+                  data:  {
+                      'mId' : mId
+                  },  // 需要传送的参数
+                  type: 'POST',   // 请求方式
+                  dataType: 'json', // 返回数据的格式, 通常为JSON
+                  success: function (result) {
+                      that.basicInfo = result;
+                  },
+              });
+      },
+      selectsjxx(mId){
+          const that=this;
+          $.ajax({
+              url: '/api/RechagerController/selectsjxx',     // 请求地址, 就是你的控制器, 如 test.com/home/index/index
+              data:  {
+                  'mId' : mId
+              },  // 需要传送的参数
+              type: 'POST',   // 请求方式
+              dataType: 'json', // 返回数据的格式, 通常为JSON
+              success: function (result) {
+                  that.basicInfo2 = result;
+              },
+          });
+      },
+
+      selectczxx(mId){
+          const that=this;
+          $.ajax({
+              url: '/api/RechagerController/selectczxx',     // 请求地址, 就是你的控制器, 如 test.com/home/index/index
+              data:  {
+                  'mId' : mId
+              },  // 需要传送的参数
+              type: 'POST',   // 请求方式
+              dataType: 'json', // 返回数据的格式, 通常为JSON
+              success: function (result) {
+                      that.jfjlList = result.data;
+              },
+          });
+
+      },
+      upInrechage(mId){//点击缴费
+        const that =this;
+              this.$confirm('是否充值?', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'info'
+              }).then(() => {
+                  $.ajax({
+                      url: '/api/RechagerController/updateaddYue',
+                      data: {
+                          'mId': mId,
+                          'mBalance': that.dbNum,
+                          'rMoney': that.dbNum,
+                          'rType': 2,
+                          'mNo': that.basicInfo2.mNo,
+                          'cId': that.basicInfo2.cId,
+                          'rJfr': that.basicInfo2.cContact,
+                          'cName': that.basicInfo2.cName
+                      },
+                      type: 'POST',
+                      dataType: 'json',
+                      success: function (result) {
+                          debugger
+                           if (result.success) {
+                              that.$message({
+                                  type: 'success',
+                                  message: '充值成功!'
+                              });
+                               const suoyin2=that.ylphbData[that.nav_conIndex].con[that.meterIndex].meterId;
+                               that.dbNum=0;
+                               that.selectmBalance(suoyin2);
+                               that.selectczxx(suoyin2);
+                           }
+
+                      }
+                  });
+              }).catch(() => {
+                  this.$message({
+                      type: 'info',
+                      message: '取消充值'
+                  });
+              });
+      },
+
+
+    /**
+     * 用户排名切换
+     */
+    yhphChange(index){//单位表具
+      this.ylphTit = index;
+    },
+
+
+    /**
+    * 单位表具管理
+    */
+    navLiChange(index){
+        this.nav_conIndex = index;
+        // 表具默认选择第一个
+        this.meterIndex =0 ;
+    },
+
+    /**
+    * 表具信息
+    */
+    ljjfClickFun(mId,mBalance){
+        const suoyin2 = this.ylphbData[this.nav_conIndex].con[this.meterIndex].meterId;
+        this.upInrechage(suoyin2,mBalance);
+
+
+        },
+
+      // 修改表具下标变量
+      meterChange(index) {
+
+          this.meterIndex = index;
+          const suoyin2 = this.ylphbData[this.nav_conIndex].con[this.meterIndex].meterId;
+          //this.basicInfo2.cName=this.ylphbData.companyName;
+         // this.basicInfo2.mName=this.ylphbData.meterName;
+         //  this.basicInfo2.mNo=this.ylphbData.mNo;
+          this.selectmBalance(suoyin2);
+          this.selectsjxx(suoyin2);
+          this.selectczxx(suoyin2);
+      },
+  }
+
+}
+
+</script>
+<style lang='less' scoped>
+.cultureDiv {
+  padding: 0 20px 20px;
+  max-width: calc(100vw - 300px);
+  min-height: calc(100vh - 57px);
+  section {
+    width: 100%;
+    height: 87vh;
+    padding-top: 18px;
+    .sec_div{
+      float:left;
+      height:100%;
+      &:first-child{
+        width:23.15%;
+        .template_div{
+
+        }
+      }
+      &:last-child{
+        width:calc(76.85% - 18px);
+        margin-left:18px;
+        .template_div{
+          .temp_con{
+            padding:0 18px;
+             h5{
+                height:40px;
+                line-height: 40px;
+                padding-left:10px;
+                text-indent: 1.2vw;
+             }
+            .bjxxDiv{
+              h5{
+                border:1px solid #ccc;
+                border-bottom:0;
+               background: url(../../assets/image/bjxx.png) no-repeat 10px center;
+               font-size: 18px;
+                font-weight: 500;
+              }
+              ul{
+                overflow: hidden;
+                border:1px solid #ccc;
+                li{
+                  float:left;
+                  width:33.33%;
+                  p{
+                    float:left;
+                    width:50%;
+                    height:40px;
+                    line-height: 40px;
+                    text-align: center;
+                    border-right:1px solid #ccc;
+                    &:first-child{
+                      font-weight: 900;
+                    }
+                  }
+                  &:last-child{
+                    p:last-child{
+                      border-right:0;
+                    }
+                  }
+                }
+              }
+
+            }
+            .jfjlDiv{
+              h5{
+                border:1px solid #ccc;
+                border-bottom:0;
+                border-top:0;
+                background: url(../../assets/image/jfjl.png) no-repeat 10px center;
+                 font-size: 18px;
+                 font-weight: 500;
+              }
+            }
+            .numDiv{
+              text-align: right;
+              padding-top: 4vh;
+              padding-right: 15px;
+              height: 8.5vh;
+              border: 1px solid #ccc;
+              border-top: 0;
+            }
+          }
+        }
+      }
+      .template_div {
+        border:1px solid #cacaca;
+        box-shadow: 0 0 3px #cacaca;
+        overflow-y: auto;
+        height:100%;
+        h4{
+          height: 4.3vh;
+          padding-top: 1vh;
+          span{
+            border-left:4px solid #1dc9ff;
+            padding-left: 10px;
+             font-size: 18px;
+            font-weight: 500;
+          }
+          .moreCheck{
+            float: right;
+            width: 8vw;
+            margin-right: 10px;
+            text-align: center;
+          }
+        }
+        .temp_con{
+          height:95%;
+          .nav{
+            border:1px solid #ccc;
+            border-left:0;
+            border-right:0;
+            overflow: hidden;
+            li{
+              float:left;
+              width:33.33%;
+              text-align: center;
+              border-bottom:4px solid rgba(0,0,0,0);
+              color:#333;
+              padding: 1.23vh 0;
+              font-size: 14px;
+              &:hover{
+                cursor: pointer;
+              }
+            }
+          }
+          .nav_con{
+            border-top: 1px solid #cccc;
+            margin: 0 10px;
+            li{
+              padding:0 18px;
+              overflow: hidden;
+              &:hover{
+                cursor: pointer;
+              }
+              p{
+                float:left;
+                width:100%;
+                padding: 3.8% 0;
+                border-bottom: 1px solid #ddd;
+                font-size: 16px;
+                span{
+                  float:right;
+                }
+              }
+            }
+            .navLiActive{
+              padding:18px;
+              .navDiv{
+                height: 13vh;
+                border-bottom: 1px solid #ddd;
+                position: relative;
+                .navDivL{
+                  width:4.5vw;
+                  float:left;
+                  background: url(../../assets/image/bg_right.jpg) no-repeat center right;
+                  h2{
+                    font-size: 16px;
+                  }
+                }
+                .navDivR{
+                  width:8vw;
+                  float:left;
+                  padding-left: 1.5vw;
+                  p{
+                    border:0;
+                     padding: 1.8% 0;
+                    color:#5094ff;
+                  }
+                }
+                .navDivImg{
+                  position:absolute;
+                  right:0;
+                  top:0;
+                }
+              } 
+            }
+          }
+        }
+      }
+    }
+    
+  }
+}
+</style>

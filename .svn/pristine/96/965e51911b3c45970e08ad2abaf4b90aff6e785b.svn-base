@@ -1,0 +1,568 @@
+<template>
+   <div class="cultureDiv">
+    <Breadcrumb style="border-bottom:1px solid #ccc;font-size:18px;font-weight:100;padding:8px 0;">
+      <BreadcrumbItem>基础数据<span style="padding:0 10px;">></span>表具管理</BreadcrumbItem>
+    </Breadcrumb>
+    <Content>
+      <section>
+        <div class="sec_div">
+           <div class="template_div">
+             <h4>
+               <span>表计编号</span>
+               <div class="souso sousoT">
+                 <Input v-model="bjbhVal" placeholder="请输入"/>
+               </div>
+               <span class="spanT">单位名</span>
+               <div class="souso">
+                 <Input v-model="dwmVal" placeholder="请输入"/>
+                 <Button size="small" @click="search"><Icon type="ios-search" /></Button>
+               </div>
+               <div class="moreCheck">
+                  <Button @click="addData">添加</Button>
+                  <Button @click="editData">修改</Button>
+                  <Button @click="deleteData">删除</Button>
+               </div>
+             </h4>
+             <div class="temp_con">
+               <div class="table">
+
+
+                   <el-table
+                           border
+                           v-loading="loading"
+                           :data="tableData"
+                           style="width: 100%; margin-top: 10px;"
+                           :row-key="getRowKey"
+                           @selection-change="handleSelectionChange">
+                       <el-table-column
+                               type="selection">
+                       </el-table-column>
+                       <el-table-column align="center" prop="bjbh" label="表具编号"> </el-table-column>
+                       <el-table-column align="center" prop="bjmc" label="表具名称"></el-table-column>
+                       <el-table-column align="center" prop="cbfs" label="抄表方式"></el-table-column>
+                       <el-table-column align="center" prop="bjlx" label="表具类型"></el-table-column>
+                       <el-table-column align="center" prop="bl" label="倍率" ></el-table-column>
+                       <el-table-column align="center" prop="azwz" label="安装位置" ></el-table-column>
+                       <el-table-column align="center" prop="shmc" label="商户名称" ></el-table-column>
+                   </el-table>
+                   <el-pagination
+                           background
+                           @current-change="currentPageChange"
+                           layout="prev, pager, next"
+                           :current-page="currentPage"
+                           :total="total"
+                           :page-size="pageSizse"
+                           :disabled="disablePagination">
+                   </el-pagination>
+
+               </div>
+             </div>
+           </div>
+        </div>
+      </section>
+      <Modal
+        class-name='addModel'
+        v-model="addModel"
+        :closable='false'
+        :title="title"
+        @on-ok="clickTrue"
+        @on-cancel="cancel">
+        <addModel  ref = "addModel"></addModel>
+      </Modal>
+    </Content>
+  </div>
+</template>
+
+<script>
+  import addModel from '@/components/model/addModel';
+  import $ from 'jquery';
+  export default {
+    name:'',
+    props:['Company'],//表具管理
+    data () {
+      return {
+        bjbhVal:'',//表计编号
+        dwmVal:'',//单位名
+        addModel:false,//新增弹框状态
+        title:'',
+        total: 0,
+        currentPage: 1,
+         pageSizse: 7,
+        loading: true,
+        disablePagination: false,
+        tableData: [],
+        selectedData: [],
+          insertorupdate:1,
+
+      };
+    },
+
+    components: {
+      addModel
+    },
+
+    computed: {},
+
+    beforeMount() {},
+
+    mounted() {
+        this.getFaultInfoByComId();
+        this.xilakuang();
+    },
+
+    methods: {
+        xilakuang(){
+            const that = this;
+            $.ajax('/api/WatchSetController/xilakuang', {
+                dataType: 'json',
+                success: function(res) {
+                    if(res != null && res.success == true){
+                        that.$nextTick(() => {
+                            that.$refs.addModel.cbfsVals = res.data.cbfs;
+                            that.$refs.addModel.jzqVals = res.data.ssjzq;
+                            that.$refs.addModel.bjlxVals = res.data.bjlx;
+                            that.$refs.addModel.bjztVals = res.data.bjzt;
+                            that.$refs.addModel.ssdwVals = res.data.ssdw;
+                            that.$refs.addModel.txslVals = res.data.txsl;
+                            that.$refs.addModel.txxylxVals = res.data.txxy;
+                            that.$refs.addModel.djVals = res.data.djxx;
+                        });
+                    }
+                }
+            });
+        },
+        getFaultInfoByComId() {
+            const that = this;
+            this.loading = true;
+            this.disablePagination = true;
+            $.ajax('/api/WatchSetController/watchSetinfo', {
+                data: {
+                    cname: that.dwmVal,
+                    bjbh:that.bjbhVal,
+                    now: that.currentPage,
+                    size: that.pageSizse,
+                },
+                dataType: 'json',
+                success: function(res) {
+                    that.total = res.total;
+                    that.tableData = res.data;
+                },
+                complete: function() {
+                    that.loading = false;
+                    that.disablePagination = false;
+                }
+            });
+
+        },
+        deleteData() {//点击处理事件
+            const that = this;
+            if (this.handleSelectionChangedata != null && this.handleSelectionChangedata.length == 1) {
+
+                this.$confirm('是否删除选中数据?', '提示', {confirmButtonText: '确定', cancelButtonText: '取消', type: 'info'}).then(() => {
+
+                    $.ajax('/api/WatchSetController/deleteData', {
+                        data: {
+                            bjbh: this.handleSelectionChangedata[0].bjbh,
+                        },
+                        dataType: 'json',
+                        success: function(res) {
+                            if(res.success){
+                                that.$message({type: 'success', message: res.message});
+                                this.getFaultInfoByComId();
+                            }else{
+                                that.$message({type: 'error', message: res.message});
+                                return;
+                            }
+                        },
+                        complete: function() {
+                        }
+                    });
+
+
+                }).catch(() => {this.$message({type: 'info', message: '已取消删除'});});
+
+
+            }else{
+                this.$message({type: 'info', message: "请选择一条数据操作！"});
+            }
+        },
+        currentPageChange(currentPage) {
+            this.currentPage = currentPage;
+            this.getFaultInfoByComId();
+        },
+        // 指定一个key标识这一行的数据
+        getRowKey (row) {
+            return row.shid;
+        },
+        // val表示选中的表格行数据
+        handleSelectionChange (val) {
+            this.handleSelectionChangedata = val;
+        },
+        search(){//搜索框点击事件
+            this.getFaultInfoByComId();
+        },
+      addData(){//点击添加事件
+            this.title="新增表具";
+        this.$refs.addModel.insertorupdate = 1;
+          this.$refs.addModel.bjmcVal = "";//表具名称
+          this.$refs.addModel.bhVal = "";//表号
+          this.$refs.addModel.sbhVal = "";//设备号
+          this.$refs.addModel.zdxhVal = "";//终端序号
+          this.$refs.addModel.bjxhVal = "";//表具型号
+          this.$refs.addModel.bjfzVal = "";//报警阀值
+          this.$refs.addModel.azwzVal = "";//安装位置
+          this.$refs.addModel.sccsVal = ""//生产厂商
+          this.$refs.addModel.txdkVal = "";//通讯端口
+          this.$refs.addModel.txdzVal = "";//通讯地址
+          this.$refs.addModel.yhdxlhVal = "";//用户大小类号
+
+          this.$refs.addModel.cbfsVal = "";//抄表方式
+          this.$refs.addModel.jzqVal = "";//所属集中器
+          this.$refs.addModel.bjlxVal = "";//表具类型
+          this.$refs.addModel.bjztVal = "";//表具状态
+          this.$refs.addModel.bbVal = "";//变比
+          this.$refs.addModel.ssdwVal = "";//所属单位
+          this.$refs.addModel.txslVal = "";//通讯速率
+          this.$refs.addModel.txxylxVal = "";//通讯协议类型
+          this.$refs.addModel.cbfsstem = "";//判断抄表方式选择
+          this.$refs.addModel.djVal = "";//判断单价编号
+          this.$refs.addModel.djVallabel = "";//判断单价内容
+          this.$refs.addModel.types1 = true;
+          this.$refs.addModel.types = true;
+        this.addModel=true;
+      },
+      clickTrue(){//新增弹框点击确定事件
+        if(this.$refs.addModel.insertorupdate == 1){
+            this.insertData();
+        }else{
+            this.updatedata();
+        }
+      },
+      cancel(){//取消事件
+        this.addModel=false;
+      },
+      editData(){//点击修改事件
+          const that = this;
+          this.title="修改表具";
+          let djbh = "";
+          let djname = "";
+          if (this.handleSelectionChangedata != null && this.handleSelectionChangedata.length == 1) {
+
+              $.ajax('/api/WatchSetController/updatebjselbjxx', {
+                  data: {
+                      bjbh: this.handleSelectionChangedata[0].bjbh,
+                  },
+                  dataType: 'json',
+                  async: false,
+                  success: function(res) {
+                      if(res.success){
+                          that.$refs.addModel.insertorupdate = 2;
+                          that.$refs.addModel.empssbh =true;
+                          that.$refs.addModel.empsbh =true;
+                          that.$refs.addModel.empszdxh = true;
+                          that.$refs.addModel.empstxdz = true;
+                          that.$refs.addModel.bjmcVal = res.data.njmc;//表具名称
+                          that.$refs.addModel.bhVal = res.data.bjbh;//表号
+                          that.$refs.addModel.sbhVal = res.data.sbh;//设备号
+                          that.$refs.addModel.zdxhVal = res.data.zdxh;//终端序号
+                          that.$refs.addModel.bjxhVal = res.data.bjxh;//表具型号
+                          that.$refs.addModel.bjfzVal = res.data.bjfz;//报警阀值
+                          that.$refs.addModel.azwzVal = res.data.azwz;//安装位置
+                          that.$refs.addModel.sccsVal = res.data.sccs;//生产厂商
+                          that.$refs.addModel.txdkVal = res.data.txdk;//通讯端口
+                          that.$refs.addModel.txdzVal = res.data.txdz;//通讯地址
+                          that.$refs.addModel.yhdxlhVal = res.data.dxlh;//用户大小类号
+
+                              that.$refs.addModel.cbfsVal = res.data.cbfs;//抄表方式
+                              that.$refs.addModel.jzqVal = res.data.jzq;//所属集中器
+                              that.$refs.addModel.bjlxVal = res.data.bjlx;//表具类型
+                              that.$refs.addModel.bjztVal = res.data.bjzt;//表具状态
+                              that.$refs.addModel.bbVal = res.data.bl;//变比
+                              that.$refs.addModel.ssdwVal = parseInt(res.data.ssdw);//所属单位
+                              that.$refs.addModel.txslVal = res.data.txsl;//通讯速率
+                              that.$refs.addModel.txxylxVal = res.data.txxy;//通讯协议类型
+
+                              djbh = res.data.djbh;//通讯协议类型
+                              djname = res.data.dj;//通讯协议类型
+                          // that.$refs.addModel.djVal = res.data.djbh;//通讯协议类型
+                          // that.$refs.addModel.djVallabel = res.data.dj;//通讯协议类型
+
+                          if(res.data.cbfs == '3'){
+                              that.$refs.addModel.types1 = true;
+                              that.$refs.addModel.types = false;
+                              that.$refs.addModel.cbfsstem = '集抄';
+                          }else if( res.data.cbfs == '1' ){
+                              that.$refs.addModel.cbfsstem = '4G';
+                              that.$refs.addModel.types1 = false;
+                              that.$refs.addModel.types = true;
+                          }else if(res.data.cbfs == '2'){
+                              that.$refs.addModel.cbfsstem = 'NB-IoT';
+                              that.$refs.addModel.types1 = false;
+                              that.$refs.addModel.types = true;
+                          }else{
+                              that.$refs.addModel.cbfsstem = '';
+                              that.$refs.addModel.types1 = true;
+                              that.$refs.addModel.types = true;
+                          }
+
+                          that.addModel=true;
+                      }else{
+                          that.$message({type: 'error', message: res.message});
+                          return;
+                      }
+                  },
+                  complete: function() {
+                  }
+              });
+
+              $.ajax('/api/WatchSetController/xilakuang', {
+                  data:{'bjlxtext': that.$refs.addModel.bjlxVal},
+                  dataType: 'json',
+                  async: false,
+                  success: function(res) {
+                      if(res != null && res.success == true){
+                          that.$nextTick(() => {
+                              that.$refs.addModel.djVals = res.data.djxx;
+                              that.$refs.addModel.djVal = djbh;//通讯协议类型
+                              that.$refs.addModel.djVallabel = djname;//通讯协议类型
+                          });
+                      }
+                  }
+              });
+
+
+
+          }else{
+              this.$message({type: 'info', message: "请选择一条数据操作！"});
+          }
+      },
+      insertData(){
+
+          let pdata = [];
+
+          if(this.$refs.addModel.bjmcVal == null || this.$refs.addModel.bjmcVal.length > 50 || this.$refs.addModel.bjmcVal == ""){this.$message({type: 'error', message: "表具名称不可为空，最长50字符！"});return;}
+          if(this.$refs.addModel.bhVal == null || this.$refs.addModel.bhVal.length > 50 || this.$refs.addModel.bhVal == ""){this.$message({type: 'error', message: "表号不可为空，最长50字符！"});return;}
+          if(!this.$refs.addModel.empsbh){ this.$message({type: 'error', message: "表号数据库中已存在！"}); return;}
+          if(this.$refs.addModel.bjxhVal == null || this.$refs.addModel.bjxhVal == ""){this.$message({type: 'error', message: "表具型号不可为空！"});return;}
+          if(this.$refs.addModel.bjfzVal == null || this.$refs.addModel.bjfzVal == 0 || this.$refs.addModel.bjfzVal == ""){this.$message({type: 'error', message: "报警阀值不可为空！"});return;}
+          if(this.$refs.addModel.azwzVal == null || this.$refs.addModel.azwzVal.length > 100 || this.$refs.addModel.azwzVal == ""){this.$message({type: 'error', message: "安装位置不可为空，最长100字符！"});return;}
+          if(this.$refs.addModel.cbfsVal == null  || this.$refs.addModel.cbfsVal == ""){this.$message({type: 'error', message: "抄表方式不可为空！"});return;}
+          if(this.$refs.addModel.sccsVal == null || this.$refs.addModel.sccsVal.length > 50 || this.$refs.addModel.sccsVal == ""){this.$message({type: 'error', message: "生产厂家不可为空，最长50字符！"});return;}
+          if(this.$refs.addModel.bjlxVal == null|| this.$refs.addModel.bjlxVal == ""){this.$message({type: 'error', message: "表具类型不可为空！"});return;}
+          if(this.$refs.addModel.bjztVal == null || this.$refs.addModel.bjztVal == ""){this.$message({type: 'error', message: "表具状态不可为空！"});return;}
+          if(this.$refs.addModel.ssdwVal == null || this.$refs.addModel.ssdwVal == ""){this.$message({type: 'error', message: "所属单位不可为空！"});return;}
+          if(this.$refs.addModel.bbVal == null || this.$refs.addModel.bbVal == 0 || this.$refs.addModel.bbVal == ""){this.$message({type: 'error', message: "变比不可为空！"});return;}
+          if(this.$refs.addModel.djVallabel == null || this.$refs.addModel.djVallabel == ""){this.$message({type: 'error', message: "单价不可为空！"});return;}
+
+
+
+          pdata.push({"bjmc" : this.$refs.addModel.bjmcVal});//表具名称
+          pdata.push({"bh" : this.$refs.addModel.bhVal});//表号
+          pdata.push({"bjxh" : this.$refs.addModel.bjxhVal});//表具型号
+          pdata.push({"bjfz" : this.$refs.addModel.bjfzVal});//报警阀值
+          pdata.push({"azwz" : this.$refs.addModel.azwzVal});//安装位置
+          pdata.push({"cbfs" : this.$refs.addModel.cbfsVal});//抄表方式
+          pdata.push({"sccj" : this.$refs.addModel.sccsVal});//生产厂商
+          pdata.push({"bjlx" : this.$refs.addModel.bjlxVal});//表具类型
+          pdata.push({"bjzt" :  this.$refs.addModel.bjztVal});//表具状态
+          pdata.push({"bb" : this.$refs.addModel.bbVal});//变比
+          pdata.push({"ssdw" : this.$refs.addModel.ssdwVal});//所属单位
+          pdata.push({"djxx" : this.$refs.addModel.djVallabel});//所属单价名称
+          pdata.push({"djval" : this.$refs.addModel.djVal});//所属单价
+
+          if(this.$refs.addModel.cbfsstem == '集抄'){
+              //集抄特有属性
+              if(this.$refs.addModel.jzqVal == null || this.$refs.addModel.jzqVal == ""){this.$message({type: 'error', message: "所属集中器不可为空！"});return;}
+              if(this.$refs.addModel.zdxhVal == null || this.$refs.addModel.zdxhVal.length > 10 || this.$refs.addModel.zdxhVal == ""){this.$message({type: 'error', message: "终端序号不可为空，最长10字符！"});return;}
+              if(!this.$refs.addModel.empszdxh){ this.$message({type: 'error', message: "终端序号数据库中已存在！"}); return;}
+              if(this.$refs.addModel.txslVal == null || this.$refs.addModel.txslVal == ""){this.$message({type: 'error', message: "通讯速率不可为空！"});return;}
+              if(this.$refs.addModel.txxylxVal == null  || this.$refs.addModel.txxylxVal == ""){this.$message({type: 'error', message: "通讯协议不可为空！"});return;}
+              if(this.$refs.addModel.txdzVal == null || this.$refs.addModel.txdzVal.length > 50 || this.$refs.addModel.txdzVal == ""){this.$message({type: 'error', message: "通讯地址不可为空，最长50字符！"});return;}
+              if(!this.$refs.addModel.empstxdz){ this.$message({type: 'error', message: "通讯地址数据库中已存在！"}); return;}
+              if(this.$refs.addModel.txdkVal == null || this.$refs.addModel.txdkVal.length > 10 || this.$refs.addModel.txdkVal == ""){this.$message({type: 'error', message: "通讯端口不可为空，最长10字符！"});return;}
+              if(this.$refs.addModel.yhdxlhVal == null || this.$refs.addModel.yhdxlhVal.length > 10 || this.$refs.addModel.yhdxlhVal == ""){this.$message({type: 'error', message: "大小类号不可为空，最长10字符！"});return;}
+              pdata.push({"jzq" : this.$refs.addModel.jzqVal});//所属集中器
+              pdata.push({"zdxh" : this.$refs.addModel.zdxhVal});//终端序号
+              pdata.push({"txsl" : this.$refs.addModel.txslVal});//通讯速率
+              pdata.push({"txxy" : this.$refs.addModel.txxylxVal});//通讯协议类型
+              pdata.push({"txdz" : this.$refs.addModel.txdzVal});//通讯地址
+              pdata.push({"txdk" : this.$refs.addModel.txdkVal});//通讯端口
+              pdata.push({"dxlh" : this.$refs.addModel.yhdxlhVal});//用户大小类号
+          }else if(this.$refs.addModel.cbfsstem == '4G' || this.$refs.addModel.cbfsstem == 'NB-IoT'){
+              if(this.$refs.addModel.sbhVal == null || this.$refs.addModel.sbhVal.length > 50 || this.$refs.addModel.sbhVal == ""){this.$message({type: 'error', message: "设备号不可为空，最长50字符！"});return;}
+              if(!this.$refs.addModel.empssbh){ this.$message({type: 'error', message: "设备号数据库中已存在！"}); return;}
+              pdata.push({"sbh" : this.$refs.addModel.sbhVal});//设备号
+          }else{
+              this.$message({type: 'error', message: '请选择抄表方式！'});
+              return;
+          }
+
+          const that = this;
+          $.ajax('/api/WatchSetController/insertData', {
+              data: {
+                  'pdata': JSON.stringify(pdata)
+              },
+              dataType: 'json',
+              success: function(res) {
+                  if(res.success){
+                      that.$message({type: 'success', message: res.message});
+                      that.getFaultInfoByComId();
+                  }else{
+                      that.$message({type: 'error', message: res.message});
+                  }
+              },
+              complete: function() {}
+          });
+        },
+      updatedata(){
+            debugger;
+            let pdata = [];
+
+            if(this.$refs.addModel.bjmcVal == null || this.$refs.addModel.bjmcVal.length > 50 || this.$refs.addModel.bjmcVal == ""){this.$message({type: 'error', message: "表具名称不可为空，最长50字符！"});return;}
+            // if(this.$refs.addModel.bhVal == null || this.$refs.addModel.bhVal.length > 50 || this.$refs.addModel.bhVal == ""){this.$message({type: 'error', message: "表号不可为空，最长50字符！"});return;}
+            if(this.$refs.addModel.bjxhVal == null || this.$refs.addModel.bjxhVal == ""){this.$message({type: 'error', message: "表具型号不可为空！"});return;}
+            if(this.$refs.addModel.bjfzVal == null || this.$refs.addModel.bjfzVal == 0 || this.$refs.addModel.bjfzVal == ""){this.$message({type: 'error', message: "报警阀值不可为空！"});return;}
+            if(this.$refs.addModel.azwzVal == null || this.$refs.addModel.azwzVal.length > 100 || this.$refs.addModel.azwzVal == ""){this.$message({type: 'error', message: "安装位置不可为空，最长100字符！"});return;}
+            if(this.$refs.addModel.cbfsVal == null  || this.$refs.addModel.cbfsVal == ""){this.$message({type: 'error', message: "抄表方式不可为空！"});return;}
+            if(this.$refs.addModel.sccsVal == null || this.$refs.addModel.sccsVal.length > 50 || this.$refs.addModel.sccsVal == ""){this.$message({type: 'error', message: "生产厂家不可为空，最长50字符！"});return;}
+            if(this.$refs.addModel.bjlxVal == null|| this.$refs.addModel.bjlxVal == ""){this.$message({type: 'error', message: "表具类型不可为空！"});return;}
+            if(this.$refs.addModel.bjztVal == null || this.$refs.addModel.bjztVal == ""){this.$message({type: 'error', message: "表具状态不可为空！"});return;}
+            if(this.$refs.addModel.ssdwVal == null || this.$refs.addModel.ssdwVal == ""){this.$message({type: 'error', message: "所属单位不可为空！"});return;}
+            if(this.$refs.addModel.bbVal == null || this.$refs.addModel.bbVal == 0 || this.$refs.addModel.bbVal == ""){this.$message({type: 'error', message: "变比不可为空！"});return;}
+            if(this.$refs.addModel.djVallabel == null || this.$refs.addModel.djVallabel == ""){this.$message({type: 'error', message: "单价不可为空！"});return;}
+
+
+            pdata.push({"bjmc" : this.$refs.addModel.bjmcVal});//表具名称
+            pdata.push({"bh" : this.$refs.addModel.bhVal});//表号
+            pdata.push({"bjxh" : this.$refs.addModel.bjxhVal});//表具型号
+            pdata.push({"bjfz" : this.$refs.addModel.bjfzVal});//报警阀值
+            pdata.push({"azwz" : this.$refs.addModel.azwzVal});//安装位置
+            pdata.push({"cbfs" : this.$refs.addModel.cbfsVal});//抄表方式
+            pdata.push({"sccj" : this.$refs.addModel.sccsVal});//生产厂商
+            pdata.push({"bjlx" : this.$refs.addModel.bjlxVal});//表具类型
+            pdata.push({"bjzt" :  this.$refs.addModel.bjztVal});//表具状态
+            pdata.push({"bb" : this.$refs.addModel.bbVal});//变比
+            pdata.push({"ssdw" : this.$refs.addModel.ssdwVal});//所属单位
+            pdata.push({"djxx" : this.$refs.addModel.djVallabel});//所属单价名称
+            pdata.push({"djval" : this.$refs.addModel.djVal});//所属单价
+
+            if(this.$refs.addModel.cbfsstem == '集抄'){
+                //集抄特有属性
+                if(this.$refs.addModel.jzqVal == null || this.$refs.addModel.jzqVal == ""){this.$message({type: 'error', message: "所属集中器不可为空！"});return;}
+                if(this.$refs.addModel.zdxhVal == null || this.$refs.addModel.zdxhVal.length > 10 || this.$refs.addModel.zdxhVal == ""){this.$message({type: 'error', message: "终端序号不可为空，最长10字符！"});return;}
+                if(this.$refs.addModel.txslVal == null || this.$refs.addModel.txslVal == ""){this.$message({type: 'error', message: "通讯速率不可为空！"});return;}
+                if(this.$refs.addModel.txxylxVal == null  || this.$refs.addModel.txxylxVal == ""){this.$message({type: 'error', message: "通讯协议不可为空！"});return;}
+                if(this.$refs.addModel.txdzVal == null || this.$refs.addModel.txdzVal.length > 50 || this.$refs.addModel.txdzVal == ""){this.$message({type: 'error', message: "通讯地址不可为空，最长50字符！"});return;}
+                if(this.$refs.addModel.txdkVal == null || this.$refs.addModel.txdkVal.length > 10 || this.$refs.addModel.txdkVal == ""){this.$message({type: 'error', message: "通讯端口不可为空，最长10字符！"});return;}
+                if(this.$refs.addModel.yhdxlhVal == null || this.$refs.addModel.yhdxlhVal.length > 10 || this.$refs.addModel.yhdxlhVal == ""){this.$message({type: 'error', message: "大小类号不可为空，最长10字符！"});return;}
+                pdata.push({"jzq" : this.$refs.addModel.jzqVal});//所属集中器
+                pdata.push({"zdxh" : this.$refs.addModel.zdxhVal});//终端序号
+                pdata.push({"txsl" : this.$refs.addModel.txslVal});//通讯速率
+                pdata.push({"txxy" : this.$refs.addModel.txxylxVal});//通讯协议类型
+                pdata.push({"txdz" : this.$refs.addModel.txdzVal});//通讯地址
+                pdata.push({"txdk" : this.$refs.addModel.txdkVal});//通讯端口
+                pdata.push({"dxlh" : this.$refs.addModel.yhdxlhVal});//用户大小类号
+            }else if(this.$refs.addModel.cbfsstem == '4G' || this.$refs.addModel.cbfsstem == 'NB-IoT'){
+                if(this.$refs.addModel.sbhVal == null || this.$refs.addModel.sbhVal.length > 50 || this.$refs.addModel.sbhVal == ""){this.$message({type: 'error', message: "设备号不可为空，最长50字符！"});return;}
+                pdata.push({"sbh" : this.$refs.addModel.sbhVal});//设备号
+            }else{
+                this.$message({type: 'error', message: '请选择抄表方式！'});
+                return;
+            }
+            debugger;
+            const that = this;
+            $.ajax('/api/WatchSetController/updatedata', {
+                data: {
+                    'pdata': JSON.stringify(pdata)
+                },
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success){
+                        that.$message({type: 'success', message: res.message});
+                        that.getFaultInfoByComId();
+                    }else{
+                        that.$message({type: 'error', message: res.message});
+                    }
+                },
+                complete: function() {}
+            });
+        },
+    },
+
+    watch: {}
+
+  }
+
+</script>
+<style lang='less' scoped>
+  .cultureDiv {
+    padding: 0 20px 20px;
+    max-width: calc(100vw - 300px);
+    min-height: calc(100vh - 57px);
+    section {
+      width: 100%;
+      height: 87vh;
+      padding-top: 18px;
+      .sec_div{
+        width:100%;
+        height:100%;
+        border:1px solid #ccc;
+        box-shadow: 0 0 3px #cacaca;
+      }
+      .template_div {
+        h4{
+          height: 4.3vh;
+          padding-top: .4vh;
+          span{
+            border-left:4px solid #1dc9ff;
+            padding-left: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            float: left;
+            padding-top: .6vh;
+          }
+          .spanT{
+            border-left:0;
+          }
+          .souso{
+            float:left;
+            width: 12.7vw;
+            margin-left:10px;
+             padding-top: 0.3vh;
+          }
+          .sousoT{
+            width: 8.9vw;
+          }
+          .moreCheck{
+            float:right;
+            .ivu-btn{
+              margin-right:18px;
+              color:#fff;
+              &:nth-child(1){
+                background:#008cca;
+              }
+              &:nth-child(2){
+                background:#00bb58;
+              }
+              &:nth-child(3){
+                background:#ff0000;
+              }
+            }
+          }
+        }
+        .temp_con{
+          height:95%;
+          padding:0 10px;
+          .table{
+            border-top:1px solid #ccc;
+          }
+        }
+      }
+    }
+  }
+  .el-pagination {
+      margin-top: 10px;
+      float: right;
+      clear: both;
+  }
+</style>

@@ -1,0 +1,572 @@
+<template>
+  <div class="cultureDiv">
+    <Breadcrumb style="border-bottom:1px solid #ccc;font-size:20px;font-weight:900;padding:7px 0;">
+      <BreadcrumbItem>当前位置：首页</BreadcrumbItem>
+    </Breadcrumb>
+    <Content>
+      <section>
+        <div class="sec_div">
+           <div class="template_div">
+             <h4 style='height: 5%;'>
+                <span>用量排行榜</span>
+                <div class="moreCheck">
+                  <p :class="{'pActive':ylphTit==index}" v-for='(item,index) in ylphTitList' @click="yhphChange(index);">{{item}}</p>
+                </div>
+             </h4>
+             <div class="temp_con">
+               <ul class="nav">
+                 <li :class="{'nav_active':ylphb_act==index}" v-for='(item,index) in ylphbList' :key='index' @click="ylphbNavChange(index)">{{item}}</li>
+               </ul>
+               <ul class='nav_con'>
+                 <li>
+                   <p  v-for='(item,index) in ylbt' :key='index'>{{item}}</p>
+                 </li>
+                 <li v-if="ylphbData" :class="[{'pmOne':item.ph==1},{'pmTwo':item.ph==2},{'pmThree':item.ph==3}]" v-for="(item,index) in ylphbData">
+                   <p>{{item.ph}}</p>
+                   <p>{{item.name}}</p>
+                   <p>{{item.value}}</p>
+                 </li>
+                 <div v-else style="text-align:center;height:100%;width:100%;">
+                   暂无数据
+                 </div>
+               </ul>
+             </div>
+           </div>
+        </div>
+        <div class="sec_div">
+           <div class="template_div">
+              <h4><span>总览信息</span></h4>
+               <ul class="temp_con">
+                 <li v-for="(item,index) in zlxxList">
+                   <div class="img"><img :src="item.src"></div>
+                   <p class="conVal">
+                     <span class="nowVal">{{item.value}}</span>
+                     <span class="tolVal" v-if="item.tolVal!=''">/{{item.tolVal}}</span>
+                    </p>
+                    <p>
+                      {{item.name}}
+                    </p>
+                 </li>
+               </ul>
+           </div>
+            <div class="template_div">
+              <h4>
+                <span>水电气用量统计图</span>
+               <div class="moreCheckT  moreCheckTh">
+                 <p :class="{'pActive':sdqTit==index}" v-for='(item,index) in sdqTitList' @click="sdqChange(item,index);">{{item}}</p>
+                </div>
+                 <div class="moreCheckT">|</div>
+                 <div class="moreCheckT">
+                 <p :class="{'pActive':sdqTitT==index}" v-for='(item,index) in sdqTitListT' @click="sdqChange(item,index);">{{item}}</p>
+                </div>
+              </h4>
+               <div class="temp_con">
+                <BarChart ref="myecharts" :yData="yData" :xData="xData" @echartsClick='barClick'></BarChart>
+               </div>
+           </div>
+        </div>
+      </section>
+    </Content>
+  </div>
+</template>
+
+
+<script>
+import BarChart from "@/components/echarts/bar_sdqyl";//柱图插件
+import $ from 'jquery';
+export default {
+  name: 'index',//首页
+  props: [''],
+  data () {
+    return {
+      /**
+       * 用量排行榜
+       */
+      ylphTitList:['单位','表具'],//用量排行榜
+      ylphTit:0,//用量排行榜
+      ylphbList:['电表','水表','燃气表'],//用量排行榜
+      ylphb_act:0,//用量排行榜
+      ylpdld : 0,//用于用户表头信息判断
+      ylphbData:[//用量排行榜-排名数据
+        {
+          ph:1,
+          name:'田园古香',
+          value:1900
+        },
+         {
+          ph:2,
+          name:'大宋官窑',
+          value:1800
+        },
+         {
+          ph:3,
+          name:'新秀丽',
+          value:1700
+        },
+         {
+          ph:4,
+          name:'田园古香',
+          value:1600
+        },
+         {
+          ph:5,
+          name:'肯德基',
+          value:1500
+        },
+         {
+          ph:6,
+          name:'肯德基',
+          value:1400
+        },
+      ],
+      ylbt :['排名','商户名称','用电量(kW·h)'],
+      /**
+       * 总览信息
+       */
+      zlxxList:[
+        {"src":require("../../assets/image/zlxx_dbtz.png"),"value":"7","tolVal":'10','name':'电表跳闸数/总数'},
+        {"src":require("../../assets/image/zlxx_qfsh.png"),"value":"7","tolVal":'10','name':'欠费商户数/总数'},
+        {"src":require("../../assets/image/zlxx_gzbx.png"),"value":"7","tolVal":'10','name':'故障报修数/总数'},
+        {"src":require("../../assets/image/zlxx_jzq.png"),"value":"0","tolVal":'10','name':'集中器离线数/总数'},
+        {"src":require("../../assets/image/zlxx_sb.png"),"value":"10","tolVal":'','name':'水表总数'},
+        {"src":require("../../assets/image/zlxx_trq.png"),"value":"10","tolVal":'','name':'天然气总数'},
+      ],
+      /**
+      * 水电气用量
+      */
+       sdqTitList:['日','月','年'],//用量排行榜
+       sdqTitListT:['水','电','气'],//用量排行榜
+       sdqTit:0,//用量排行榜
+       sdqTitT:0,//用量排行榜
+
+       yData:[100, 52, 200, 334, 390, 330, 220,10, 52, 200, 334, 390, 330, 220,10, 52, 200, 334, 390, 330, 220,10, 52, 200, 200],
+       xData: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '24:00'],
+    }
+  },
+
+  components: {
+    BarChart
+  },
+
+  computed: {},
+
+  beforeMount () { },
+
+  mounted () {
+      this.xinxizonglanlod();
+      this.yongdianliangpaihang('db',0);
+      this.tubiaoshujuxuqnran(this.sdqTitListT[this.sdqTitT],this.sdqTitList[this.sdqTit]);
+      // this.sdqChange('水','0');
+
+      // var that = this;
+      // $.ajax({
+      //     url: "/api/testController/saveLog",
+      //     dateType: 'json',
+      //     success: function(res){
+      //         $.each(res, function(i, value) {
+      //             that.ylphTitList1.push(value.DMMS);
+      //         });
+      //     }
+      // });
+  },
+
+  methods: {
+    /**
+     * 用户排名切换
+     */
+    yhphChange(index){//单位表具
+      this.ylphTit = index;
+       if(index == 0){
+           this.ylpdld = 0;
+           this.ylphbNavChange(0);
+       }else{
+           this.ylpdld = 1;
+           this.ylphbNavChange(0);
+       }
+
+    },
+    ylphbNavChange(index){//电表，水表，燃气表
+      this.ylphb_act = index;
+      if(this.ylpdld == 0){
+          if(index == 0){
+              this.yongdianliangpaihang('db',0);
+              this.ylbt = ['排名','商户名称','用电量(kW·h)'];
+          }else if(index == 1){
+              this.yongdianliangpaihang('zls',0);
+              this.ylbt = ['排名','商户名称','用水量(t)'];
+          }else{
+              this.yongdianliangpaihang('trqb',0);
+              this.ylbt = ['排名','商户名称','用气量(m³)'];
+          }
+      }else{
+          if(index == 0){
+              this.yongdianliangpaihang('db',1);
+              this.ylbt = ['排名','表具名称','用电量(kW·h)'];
+          }else if(index == 1){
+              this.yongdianliangpaihang('zls',1);
+              this.ylbt = ['排名','表具名称','用水量(t)'];
+          }else{
+              this.yongdianliangpaihang('trqb',1);
+              this.ylbt = ['排名','表具名称','用气量(m³)'];
+          }
+      }
+    },
+    /**
+     * 水电气用量切换
+     */
+    sdqChange(item,index){
+      if(item == '水'){
+        this.sdqTitT = index;
+      }else if(item == '电'){
+        this.sdqTitT = index;
+      }else if(item == '气'){
+        this.sdqTitT = index;
+      }else if(item == '日'){
+        this.sdqTit = index;
+      }else if(item == '月'){
+        this.sdqTit = index;
+      }else if(item == '年'){
+        this.sdqTit = index;
+      }
+       this.tubiaoshujuxuqnran(this.sdqTitListT[this.sdqTitT],this.sdqTitList[this.sdqTit]);
+
+        // alert(this.sdqTitListT[this.sdqTitT]);
+        // alert(this.sdqTitList[this.sdqTit]);
+    },
+      /**图标信息数据加载**/
+    tubiaoshujuxuqnran(dianqishui,nianyueri){
+
+        var that = this;
+        $.ajax({
+            url: "/api/HomPageController/tubiaoshujuxuqnran",
+            async : false,
+            data:{
+                'dianqishui' : dianqishui,
+                'nianyueri' : nianyueri
+            },
+            dateType: 'json',
+            success: function(res){
+                if(res != null && res.success == true){
+                    debugger;
+                    var dateitems = res.data;
+                    that.yData = [];
+                    that.xData = [];
+                    $.each(dateitems, function(i, value) {
+                        that.yData[i] = value.val;
+                        if(that.sdqTitList[that.sdqTit] == '月'){
+                            that.xData[i] = value.tes+'日';
+                        }else if(that.sdqTitList[that.sdqTit] == '年'){
+                            that.xData[i] = value.tes+'月';
+                        }else{
+                            that.xData[i] = value.tes;
+                        }
+
+                    });
+                }
+            }
+        });
+          // this.yData = [1500, 52, 200, 334, 390, 330, 220,10, 52, 200, 334, 390, 330, 220,10, 52, 200, 334, 390, 330, 220,10, 52, 200, 200];
+          this.$nextTick(() => {
+              this.$refs.myecharts.chartSetOption();
+          });
+
+    },
+    barClick(data){//柱图点击事件
+      // alert('柱图点击事件');
+    },
+      /**信息总览后台数据加载，使用数据库数据**/
+      xinxizonglanlod(){
+          var that = this;
+          $.ajax({
+              url: "/api/HomPageController/homPagexinixzonglan",
+              dateType: 'json',
+              success: function(res){
+                  if(res != null && res.success == true){
+                      var dataitems = res.data;
+                      $.each(that.zlxxList, function(i, value) {
+                          if(value.name == '电表跳闸数/总数'){
+                              that.zlxxList[i].tolVal = dataitems['跳闸'].dbzs;
+                              that.zlxxList[i].value = dataitems['跳闸'].tds;
+                          }else if(value.name == '欠费商户数/总数'){
+                              that.zlxxList[i].tolVal = dataitems['欠费'].dwzs;
+                              that.zlxxList[i].value = dataitems['欠费'].qfyhs;
+                          }else if(value.name == '故障报修数/总数'){
+                              that.zlxxList[i].tolVal = dataitems['故障'].zs;
+                              that.zlxxList[i].value = dataitems['故障'].wcl;
+                          }else if(value.name == '集中器离线数/总数'){
+                              that.zlxxList[i].tolVal = dataitems['集中器'].jzqzs;
+                              // that.zlxxList[i].value = dataitems['故障'].WCL;
+                          }else if(value.name == '水表总数'){
+                              that.zlxxList[i].value = dataitems['跳闸'].sbzs;
+                          }else if(value.name == '天然气总数'){
+                              that.zlxxList[i].value = dataitems['跳闸'].trqbzs;
+                          }
+                      });
+                  }
+              }
+          });
+      },
+      /**用户用量了排行榜**/
+      yongdianliangpaihang(mtype,cxtype){
+
+          var that = this;
+          $.ajax({
+              url: "/api/HomPageController/homPagedanweiyongdianliang",
+              data:{
+                  'mType' : mtype,
+                  'cxtype' : cxtype
+              },
+              dateType: 'json',
+              success: function(res){
+                  if(res != null && res.success == true){
+                      var dataitems = res.data;
+                          that.ylphbData=dataitems;
+                  }
+              }
+          });
+      }
+  }
+}
+
+</script>
+<style lang='less' scoped>
+.cultureDiv {
+  padding: 0 1.25vw 1.96vh 0;
+  max-width: calc(100vw - 15.96vw);
+  min-height: calc(100vh - 57px);
+  section {
+    width: 100%;
+    height: 87vh;
+    padding-top: 1.76vh;
+    .sec_div{
+      float:left;
+      height:100%;
+      &:first-child{
+        width:23.15%;
+        .template_div{
+          height:100%;
+        }
+      }
+      &:last-child{
+        width:calc(76.85% - 18px);
+        margin-left:1.11%;
+        .template_div{
+          &:first-child{
+            height: 33%;
+            margin-bottom:1.76%;
+            .temp_con{
+              height: 84%;
+              margin: 0 0.62vw 0 0;
+              border-top: 1px solid #ccc;
+              padding-top: 2.1%;
+              overflow: hidden;
+              li{
+                width:16.66%;
+                float:left;
+                height: 80%;
+                text-align: center;
+                border-right: 1px dashed #ccc;
+                &:last-child{
+                  border:0;
+                }
+                .img{
+                   height: 60%;
+                    padding-top: 10%;
+                }
+                p{
+                  padding: 2.6% 0;
+                }
+                .conVal{
+                  font-weight: 900;
+                  font-size: 0.038rem;
+                  .tolVal{
+                    color:#333;
+                  }
+                }
+                &:nth-child(1){
+                  .nowVal{
+                    color:#2477f7;
+                  }
+                }
+                 &:nth-child(2){
+                  .nowVal{
+                    color:#f56c11;
+                  }
+                }
+                 &:nth-child(3){
+                  .nowVal{
+                    color:#00bf4a;
+                  }
+                }
+                 &:nth-child(4){
+                  .nowVal{
+                    color:#e013ff;
+                  }
+                }
+                 &:nth-child(5){
+                  .nowVal{
+                    color:#00eaff;
+                  }
+                }
+                 &:nth-child(6){
+                  .nowVal{
+                    color:#ff0000;
+                  }
+                }
+              }
+            }
+          }
+          &:last-child{
+            height: calc(67% - 18px);
+            .temp_con{
+              height: 88%;
+              margin: 0 0.62vw 0 0;
+              border-top: 1px solid #ccc;
+              
+            }
+            .moreCheckT{
+                float: right;
+                margin-right: 0.62vw;
+                text-align: center;
+                p{
+                  width: 2vw;
+                  float: left;
+                  border: 1px solid #ccc;
+                  border-radius: 10px;
+                  margin-left: 0.62vw;
+                  font-size:0.027rem;
+                  &:hover{
+                    cursor: pointer;
+                  }
+                }
+                .pActive{
+                  color:#ffa701;
+                  border: 1px solid #ffa701;
+                }
+              }
+              .moreCheckTh .pActive{
+                  color:#a36dff;
+                  border: 1px solid #a36dff;
+                }
+          }
+        }
+      }
+      .template_div {
+        border:1px solid #cacaca;
+        box-shadow: 0 0 3px #cacaca;
+        overflow-y: auto;
+        h4{
+          height: 4.3vh;
+          // padding-top: 1vh;
+          line-height: 4.3vh;
+          position:relative;
+          span{
+            border-left:4px solid #1dc9ff;
+            padding-left: 0.62vw;
+            font-size: 0.0345rem;
+            font-weight: 500;
+          }
+          .moreCheck{
+            width: 5.21vw;
+            height: 2.99vh;
+            margin-right: 0.62vw;
+            text-align: center;
+            border:1px solid hsl(188, 100%, 44%);
+            border-radius: 8px;
+            position: absolute;
+            right:0.62vw;
+            top:0.69vh;
+            p{
+              width:50%;
+              height:100%;
+              line-height: 2.99vh;
+              float:left;
+              font-size: 0.031rem;
+              &:hover{
+                cursor: pointer;
+              }
+            }
+            .pActive{
+              background:#00c1e0;
+              border-radius: 6px;
+              color:#fff;
+            }
+          }
+        }
+        .temp_con{
+          height:95%;
+          .nav{
+            border:1px solid #ccc;
+            border-left:0;
+            border-right:0;
+            overflow: hidden;
+            li{
+              float:left;
+              width:33.33%;
+              text-align: center;
+              border-bottom:4px solid rgba(0,0,0,0);
+              color:#333;
+              padding: 1.23vh 0;
+              font-size: 0.031rem;
+              &:hover{
+                cursor: pointer;
+              }
+            }
+            .nav_active{
+              border-bottom:4px solid #ffa800;
+              color:#ffa800;
+            }
+          }
+          .nav_con{
+            li{
+              overflow: hidden;
+              p{
+                padding: 2.8% 0 0 0;
+                float:left;
+                width:33.33%;
+                border-bottom: 1px dashed #ddd;
+                text-align: center;
+                font-size:0.031rem;
+              }
+            }
+            .pmOne{//排名第一
+              color:#f4ce39;
+              p{
+                padding: 3.8% 0;
+                &:first-child{
+                  background: url(../../assets/image/pm1.png) no-repeat center 78%;
+                }
+              }
+            }
+            .pmTwo{//排名第二
+               color:#f6786f;
+                p{
+                padding: 3.8% 0;
+                  &:first-child{
+                    &:first-child{
+                      background: url(../../assets/image/pm2.png) no-repeat center  78%;
+                    }
+                  }
+                }
+            }
+            .pmThree{//排名第三
+               color:#ca9662;
+                p{
+                padding: 3.8% 0;
+                  &:first-child{
+                     background: url(../../assets/image/pm3.png) no-repeat center  78%;
+                  }
+                }
+            }
+          }
+        }
+      }
+    }
+    
+  }
+}
+</style>
+
+
+
+

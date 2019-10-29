@@ -1,0 +1,61 @@
+/**
+* iviw的弹框公共样式
+**/
+.addModel .ivu-modal,
+.addModelBD .ivu-modal {
+  width: 600px!important;
+}
+.addModel .ivu-modal-header p,
+.addModelBD .ivu-modal-header p,
+.addModel .ivu-modal-header-inner,
+.addModelBD .ivu-modal-header-inner {
+  text-align: center!important;
+  color: #fff !important;
+  font-size: 18px!important;
+  font-weight: 500!important;
+}
+.addModel .ivu-modal-header,
+.addModelBD .ivu-modal-header {
+  background: #00adc9 !important;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  padding: 7px 16px!important;
+}
+.addModel .ivu-modal-body,
+.addModelBD .ivu-modal-body {
+  padding: 20px 30px 0!important;
+}
+.addModel .ivu-modal-body ul li,
+.addModelBD .ivu-modal-body ul li {
+  padding-bottom: 10px!important;
+}
+.addModel .ivu-modal-footer,
+.addModelBD .ivu-modal-footer {
+  border-top: 0!important;
+  text-align: center!important;
+  padding: 20px 18px 20px 18px!important;
+}
+.addModel .ivu-modal-footer .ivu-btn,
+.addModelBD .ivu-modal-footer .ivu-btn {
+  width: 80px!important;
+  height: 26px!important;
+  padding: 0!important;
+}
+.addModel .ivu-modal-footer .ivu-btn-text,
+.addModelBD .ivu-modal-footer .ivu-btn-text {
+  color: #515a6e !important;
+  background-color: #ccc !important;
+  border-color: #ccc !important;
+}
+.addModel .ivu-modal-footer .ivu-btn-primary,
+.addModelBD .ivu-modal-footer .ivu-btn-primary {
+  background-color: #00abc9 !important;
+  border-color: #00abc9 !important;
+  margin-left: 60px!important;
+}
+/**
+* 新增单位
+**/
+.addModelBD .ivu-modal {
+  top: 20%!important;
+}
